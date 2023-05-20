@@ -1,0 +1,330 @@
+
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+	<style>
+		.center {
+			background-repeat: no-repeat;
+			text-align: center;
+			background-size: cover;
+			background-image: url("https://img.freepik.com/free-vector/colourful-gradient-rain-squares-background_23-2148383739.jpg");
+		}
+
+		.right {
+			margin-top: 200px;
+			margin-right: 130px;
+			float: right;
+			text-align: center;
+			border-style: groove;
+			border-color: Tomato;
+			border-radius: 12px;
+			padding: 5px;
+			background-color: white;
+		}
+
+		.left {
+			margin-top: 200px;
+			margin-left: 130px;
+			float: left;
+			text-align: center;
+			border-style: groove;
+			border-color: DodgerBlue;
+			border-radius: 12px;
+			padding: 5px;
+			background-color: white;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="center">
+		<h1 style="color: white;">Tron Light Cycles (Motocyclettes de lumiere de Tron )</h1>
+		<button id="pauseButton" type="button" onclick="pause()" disable=false
+			style="width: 100px; height: 30px;">Pause</button>
+		<button id="goButton" type="button" onclick="go()" disabled=true
+			style="background-color: #B0B0B0; width: 100px; height: 30px;">Go</button>
+		<button type="button" onclick="restart()" style="width: 100px; height: 30px;">Restart</button>
+		<br><br>
+
+		<div class="left">
+			<p style="color:DodgerBlue;">Score player 1 </p>
+			<p id="score1"></p>
+		</div>
+
+		<div class="right">
+			<p style="color:Tomato;">Score player 2</p>
+			<p id="score2"></p>
+		</div>
+
+		<canvas id="myCanvas" width="700" height="570" style="border:2px solid #000000;">
+		</canvas>
+		<br><br>
+
+	</div>
+
+	<script>
+
+		// Creates a 2D array filled with zeros
+		var create2DArray = function (numColumns, numRows) {
+			var array = [];
+			for (var c = 0; c < numColumns; c++) {
+				array.push([]); // adds an empty 1D array at the end of "array"
+				for (var r = 0; r < numRows; r++) {
+					array[c].push(0); // add zero at end of the 1D array "array[c]"
+				}
+			}
+			return array;
+		}
+
+		var canvas = document.getElementById("myCanvas");
+		var C = canvas.getContext("2d");
+		var canvas_rectangle = canvas.getBoundingClientRect();
+		var cellSize = 5; // each cell in the grid is a square of this size, in pixels
+		var NUM_CELLS_HORIZONTAL = canvas.width / cellSize;
+		var NUM_CELLS_VERTICAL = canvas.height / cellSize;
+		var x0 = (canvas.width - NUM_CELLS_HORIZONTAL * cellSize) / 2;
+		var y0 = (canvas.height - NUM_CELLS_VERTICAL * cellSize) / 2;
+		var grid = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
+		var CELL_EMPTY = 0;
+		var CELL_OCCUPIED = 1;
+
+		// Current position and direction of light cycle 1
+		var lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
+		var lightCycle1_y = NUM_CELLS_VERTICAL - 2;
+		var lightCycle1_vx = 0; // positive for right
+		var lightCycle1_vy = -1; // positive for down
+		var lightCycle1_alive = true;
+		var lightCycle1_score = 0;
+		document.getElementById("score1").innerText = lightCycle1_score;
+		// début glissement souris
+		var tempX;
+		var tempY;
+
+		// Current position and direction of light cycle 2
+		var lightCycle2_x = NUM_CELLS_HORIZONTAL / 2;
+		var lightCycle2_y = 1;
+		var lightCycle2_vx = 0;
+		var lightCycle2_vy = 1;
+		var lightCycle2_alive = true;
+		var lightCycle2_score = 0;
+		document.getElementById("score2").innerText = lightCycle2_score;
+
+		// to mark the initial grid cell as occupied
+		grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
+		grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED
+
+		function keyDownHandler(e) {
+			switch (e.keyCode) {
+				// 1st player
+				case 38: // up arrow
+					lightCycle1_vx = 0;
+					lightCycle1_vy = -1;
+					break;
+				case 40: // down arrow
+					lightCycle1_vx = 0;
+					lightCycle1_vy = 1;
+					break;
+				case 37: // left arrow
+					lightCycle1_vy = 0;
+					lightCycle1_vx = -1;
+					break;
+				case 39: // right arrow
+					lightCycle1_vy = 0;
+					lightCycle1_vx = 1;
+					break;
+
+				// 2nd player
+				case 87: // up (w)
+					lightCycle2_vx = 0;
+					lightCycle2_vy = -1;
+					break;
+				case 83: // down (s)
+					lightCycle2_vx = 0;
+					lightCycle2_vy = 1;
+					break;
+				case 65: // left (a)
+					lightCycle2_vy = 0;
+					lightCycle2_vx = -1;
+					break;
+				case 68: // right (d)
+					lightCycle2_vy = 0;
+					lightCycle2_vx = 1;
+					break;
+			}
+		}
+
+		function mouseDownHandler(e) {
+			tempX = e.pageX
+			tempY = e.pageY
+		}
+
+		function mouseUpHandler(e) {
+			delta_x = e.pageX - tempX
+			delta_y = e.pageY - tempY
+
+			if (Math.abs(delta_x) > Math.abs(delta_y)) {
+				if (delta_x > 0) { // geste vers la droite
+					lightCycle1_vx = 1;
+					lightCycle1_vy = 0;
+				}
+				else { // geste vers la gauche
+					lightCycle1_vx = -1;
+					lightCycle1_vy = 0;
+				}
+			}
+			else if (delta_y > 0) { // geste vers le bas
+				lightCycle1_vx = 0;
+				lightCycle1_vy = 1;
+			}
+			else { // geste vers le haut 
+				lightCycle1_vx = 0;
+				lightCycle1_vy = -1;
+			}
+		}
+
+		document.onkeydown = keyDownHandler;
+		document.onmousedown = mouseDownHandler;
+		document.onmouseup = mouseUpHandler;
+
+		var clearGame = function () {
+			lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
+			lightCycle1_y = NUM_CELLS_VERTICAL - 2;
+			lightCycle1_vx = 0;
+			lightCycle1_vy = -1;
+			lightCycle2_x = NUM_CELLS_HORIZONTAL / 2;
+			lightCycle2_y = 1;
+			lightCycle2_vx = 0;
+			lightCycle2_vy = 1;
+
+			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
+				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
+					grid[i][j] = CELL_EMPTY;
+				}
+			}
+
+			// to mark the initial grid cell as occupied
+			grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
+			grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
+
+			// revive players
+			lightCycle1_alive = true;
+			lightCycle2_alive = true;
+		}
+
+		var redraw = function () {
+			C.fillStyle = "#000000";
+			C.fillRect(0, 0, canvas.width, canvas.height);
+
+			C.fillStyle = "#00ffff";
+			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
+				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
+					if (grid[i][j] === CELL_OCCUPIED)
+						C.fillRect(x0 + i * cellSize + 1, y0 + j * cellSize + 1, cellSize - 2, cellSize - 2);
+				}
+			}
+
+			C.fillStyle = lightCycle1_alive ? "#ff0000" : "#ffffff";
+			C.fillRect(x0 + lightCycle1_x * cellSize, y0 + lightCycle1_y * cellSize, cellSize, cellSize);
+
+			C.fillStyle = lightCycle2_alive ? "#ff0000" : "#ffffff";
+			C.fillRect(x0 + lightCycle2_x * cellSize, y0 + lightCycle2_y * cellSize, cellSize, cellSize);
+		}
+
+		var advance = function () {
+			if (!lightCycle1_alive || !lightCycle2_alive) clearGame();
+			else {
+				if (lightCycle1_alive && lightCycle2_alive) {
+					var new1_x = lightCycle1_x + lightCycle1_vx;
+					var new1_y = lightCycle1_y + lightCycle1_vy;
+					var new2_x = lightCycle2_x + lightCycle2_vx;
+					var new2_y = lightCycle2_y + lightCycle2_vy;
+					// Check for collision with head of other motorcycle
+					if ((new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
+						|| new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
+						|| grid[new1_x][new1_y] === CELL_OCCUPIED)
+						&& (new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
+							|| new2_y < 0 || new2_y >= NUM_CELLS_VERTICAL
+							|| grid[new2_x][new2_y] === CELL_OCCUPIED)) {
+						lightCycle2_alive = false;
+						lightCycle1_alive = false;
+						redraw();
+						return;
+					}
+				}
+				if (lightCycle1_alive) {
+					var new1_x = lightCycle1_x + lightCycle1_vx;
+					var new1_y = lightCycle1_y + lightCycle1_vy;
+
+					// Check for collision with grid boundaries and with trail
+					if (new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
+						|| new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
+						|| grid[new1_x][new1_y] === CELL_OCCUPIED) {
+						lightCycle1_alive = false;
+						document.getElementById("score2").innerText = ++lightCycle2_score; // player 2 wins
+					}
+					else {
+						grid[new1_x][new1_y] = CELL_OCCUPIED;
+						lightCycle1_x = new1_x;
+						lightCycle1_y = new1_y;
+					}
+					redraw();
+				}
+				if (lightCycle2_alive) {
+					var new2_x = lightCycle2_x + lightCycle2_vx;
+					var new2_y = lightCycle2_y + lightCycle2_vy;
+					if (
+						new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
+						|| new2_y < 0 || new2_y >= NUM_CELLS_VERTICAL
+						|| grid[new2_x][new2_y] === CELL_OCCUPIED
+					) {
+						lightCycle2_alive = false;
+						document.getElementById("score1").innerText = ++lightCycle1_score; // player 1 wins
+					} else {
+						grid[new2_x][new2_y] = CELL_OCCUPIED;
+						lightCycle2_x = new2_x;
+						lightCycle2_y = new2_y;
+					}
+					redraw();
+				}
+			}
+			// console.log("advance") // pour le chargé de lab (3.8)
+		}
+
+		let timer = setInterval(function () { advance(); }, 100 /*milliseconds*/);
+
+		// setInterval(function () { augmenterVitesse(); }, 1000 /*milliseconds*/); // augmente la vitesse chaque 1 seconde
+
+		// var augmenterVitesse = function () {
+		// 	lightCycle1_vx *= 1.1;
+		// 	lightCycle1_vy *= 1.1;
+		// 	lightCycle2_vx *= 1.1;
+		// 	lightCycle2_vy *= 1.1;
+		// }
+
+		function pause() {
+			clearInterval(timer);
+			document.getElementById("pauseButton").style.backgroundColor = "#B0B0B0";
+			document.getElementById('pauseButton').disabled = true;
+			document.getElementById('goButton').disabled = false;
+			document.getElementById("goButton").style.backgroundColor = null;
+		}
+
+		function restart() {
+			lightCycle1_alive = false;
+			lightCycle2_alive = false;
+		}
+
+		function go() {
+			timer = setInterval(function () { advance(); }, 100 /*milliseconds*/);
+			document.getElementById("pauseButton").style.backgroundColor = null;
+			document.getElementById('pauseButton').disabled = false;
+			document.getElementById('goButton').disabled = true;
+			document.getElementById("goButton").style.backgroundColor = "#B0B0B0";
+		}
+
+	</script>
+</body>
+
+</html>
