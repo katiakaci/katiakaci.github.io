@@ -57,11 +57,13 @@
 		<div class="left">
 			<p style="color:DodgerBlue;">Score player 1</p>
 			<p id="score1"></p>
+			<input type="color" id="moto1color" value="#253db3">
 		</div>
 
 		<div class="right">
 			<p style="color:Tomato;">Score player 2</p>
 			<p id="score2"></p>
+			<input type="color" id="moto2color" value="#e66465">
 		</div>
 
 		<div class="help">
@@ -107,6 +109,8 @@
 		var x0 = (canvas.width - NUM_CELLS_HORIZONTAL * cellSize) / 2;
 		var y0 = (canvas.height - NUM_CELLS_VERTICAL * cellSize) / 2;
 		var grid = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
+		var grid1 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
+		var grid2 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
 		var CELL_EMPTY = 0;
 		var CELL_OCCUPIED = 1;
 
@@ -135,7 +139,9 @@
 
 		// to mark the initial grid cell as occupied
 		grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-		grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED
+		grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
+		grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
+		grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
 
 		function keyDownHandler(e) {
 			switch (e.keyCode) {
@@ -181,10 +187,10 @@
 
 		function mouseDownHandler(e) {
 			// check if the mouse is on the canvas
-			if (e.pageX <= canvas.getBoundingClientRect().right
-				&& e.pageY <= canvas.getBoundingClientRect().bottom
-				&& e.pageX >= canvas.getBoundingClientRect().left
-				&& e.pageY >= canvas.getBoundingClientRect().top) {
+			if (e.pageX <= canvas_rectangle.right
+				&& e.pageY <= canvas_rectangle.bottom
+				&& e.pageX >= canvas_rectangle.left
+				&& e.pageY >= canvas_rectangle.top) {
 				tempX = e.pageX
 				tempY = e.pageY
 			}
@@ -192,10 +198,10 @@
 
 		function mouseUpHandler(e) {
 			// check if the mouse is on the canvas
-			if (e.pageX <= canvas.getBoundingClientRect().right
-				&& e.pageY <= canvas.getBoundingClientRect().bottom
-				&& e.pageX >= canvas.getBoundingClientRect().left
-				&& e.pageY >= canvas.getBoundingClientRect().top) {
+			if (e.pageX <= canvas_rectangle.right
+				&& e.pageY <= canvas_rectangle.bottom
+				&& e.pageX >= canvas_rectangle.left
+				&& e.pageY >= canvas_rectangle.top) {
 				delta_x = e.pageX - tempX
 				delta_y = e.pageY - tempY
 
@@ -257,13 +263,16 @@
 			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
 				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
 					grid[i][j] = CELL_EMPTY;
+					grid1[i][j] = CELL_EMPTY;
+					grid2[i][j] = CELL_EMPTY;
 				}
 			}
 
 			// to mark the initial grid cell as occupied
 			grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
 			grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-
+			grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
+			grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
 			// revive players
 			lightCycle1_alive = true;
 			lightCycle2_alive = true;
@@ -276,10 +285,18 @@
 			C.fillStyle = "#000000";
 			C.fillRect(0, 0, canvas.width, canvas.height);
 
-			C.fillStyle = "#00ffff";
+			C.fillStyle = document.getElementById("moto1color").value;
 			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
 				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
-					if (grid[i][j] === CELL_OCCUPIED)
+					if (grid1[i][j] === CELL_OCCUPIED)
+						C.fillRect(x0 + i * cellSize + 1, y0 + j * cellSize + 1, cellSize - 2, cellSize - 2);
+				}
+			}
+
+			C.fillStyle = document.getElementById("moto2color").value;
+			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
+				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
+					if (grid2[i][j] === CELL_OCCUPIED)
 						C.fillRect(x0 + i * cellSize + 1, y0 + j * cellSize + 1, cellSize - 2, cellSize - 2);
 				}
 			}
@@ -325,6 +342,7 @@
 					}
 					else {
 						grid[new1_x][new1_y] = CELL_OCCUPIED;
+						grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
 						lightCycle1_x = new1_x;
 						lightCycle1_y = new1_y;
 					}
@@ -342,6 +360,7 @@
 						document.getElementById("score1").innerText = ++lightCycle1_score; // player 1 wins
 					} else {
 						grid[new2_x][new2_y] = CELL_OCCUPIED;
+						grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
 						lightCycle2_x = new2_x;
 						lightCycle2_y = new2_y;
 					}
@@ -357,7 +376,7 @@
 		var increaseSpeed = function () {
 			clearInterval(timer);
 			timer = setInterval(function () { advance(); }, timeDelay);
-			timeDelay /= 1.01; // 1% decrease every 200 ms
+			timeDelay /= 1.03; // 3% decrease every 200 ms
 		}
 
 		function pause() {
@@ -372,6 +391,10 @@
 		function restart() {
 			lightCycle1_alive = false;
 			lightCycle2_alive = false;
+			lightCycle1_score = 0
+			lightCycle2_score = 0;
+			document.getElementById("score1").innerText = lightCycle1_score;
+			document.getElementById("score2").innerText = lightCycle2_score;
 		}
 
 		function go() {
