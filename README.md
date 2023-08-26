@@ -5,3 +5,4 @@ Two players must steer a motorcycle avoiding colliding with the walls. The furth
 # How to play
 First player (at the bottom of the screen) must use the up, down, right and left arrow keys, and second player must use a, d, w and s keys to move left, right, up and down respectively. 
 It is also possible to control a player with the mouse.
+![image](https://github.com/katiakaci/katiakaci.github.io/assets/82109823/1516384e-b4ba-4156-a029-cde524cea348)
