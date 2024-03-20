@@ -1,425 +1,58 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-	<style>
-		.center {
-			background-repeat: no-repeat;
-			text-align: center;
-			background-size: cover;
-			background-image: url("https://img.freepik.com/free-vector/colourful-gradient-rain-squares-background_23-2148383739.jpg");
-		}
-
-		.right {
-			margin-top: 200px;
-			margin-right: 130px;
-			float: right;
-			text-align: center;
-			border-style: groove;
-			border-color: Tomato;
-			border-radius: 12px;
-			padding: 5px;
-			background-color: white;
-		}
-
-		.left {
-			margin-top: 200px;
-			margin-left: 130px;
-			float: left;
-			text-align: center;
-			border-style: groove;
-			border-color: DodgerBlue;
-			border-radius: 12px;
-			padding: 5px;
-			background-color: white;
-		}
-
-		.help {
-			position: absolute;
-			top: 8;
-			right: 10;
-		}
-	</style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="keywords" content="HTML, CSS, JavaScript">
+	<meta name="author" content="Katia Kaci">
+	<meta name="description"
+		content="Two players must steer a motorcycle avoiding colliding with the walls. The further the game progresses, the faster the motorcycles move.">
+	<title>Tron Light Cycles</title>
+	<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
 	<div class="center">
-		<h1 style="color: white;">Tron Light Cycles</h1>
-
-		<button id="pauseButton" type="button" onclick="pause()" disable="false"
-			style="width: 100px; height: 30px;">Pause</button>
-		<button id="goButton" type="button" onclick="go()" disabled="true"
-			style="background-color: #B0B0B0; width: 100px; height: 30px;">Go</button>
-		<button type="button" onclick="restart()" style="width: 100px; height: 30px;">Restart</button>
+		<h1>Tron Light Cycles</h1>
+		<button id="pauseButton" type="button" aria-label="Pause" onclick="pause()" class="buttons">Pause</button>
+		<button id="goButton" type="button" aria-label="Resume" onclick="go()" class="buttons">Resume</button>
+		<button type="button" aria-label="Restart" onclick="restart()" class="buttons">Restart</button>
 		<br><br>
 
 		<div class="left">
-			<p style="color:DodgerBlue;">Score player 1</p>
+			<p>Score player 1</p>
 			<p id="score1"></p>
 			<input type="color" id="moto1color" value="#253db3">
 		</div>
 
 		<div class="right">
-			<p style="color:Tomato;">Score player 2</p>
+			<p>Score player 2</p>
 			<p id="score2"></p>
 			<input type="color" id="moto2color" value="#e66465">
 		</div>
 
 		<div class="help">
-			<img src="https://cdn-icons-png.flaticon.com/512/3272/3272412.png" alt="Help" width="20" height="20" title="For player 2, use keys : 
+			<img src="images/help.png" alt="Help" width="20" height="20" title="For player 2, use keys : 
 			&#013 'w' to go up 
 			&#013 's' to go down 
 			&#013 'd' to go right 
 			&#013 'a' to go left">
 		</div>
 
-		<canvas id="myCanvas" width="700" height="500" style="border:2px solid #000000;">
+		<canvas id="myCanvas" width="700" height="460" style="border:2px solid #000000;">
 		</canvas>
 		<br>
 
-		<p style="color: white;">Mouse on : </p>
-		<button id="player1Button" type="button" onclick="changeMousePlayer()" disabled="true"
-			style="width: 100px; height: 30px; color:DodgerBlue;">Player 1</button>
-		<button id="player2Button" type="button" onclick="changeMousePlayer()"
+		<p>Mouse on :</p>
+		<button id="player1Button" type="button" aria-label="Use mouse for player 1" onclick="changeMousePlayer()"
+			style="width: 100px; height: 30px; color:DodgerBlue;" disabled="true">Player 1</button>
+		<button id="player2Button" type="button" aria-label="Use mouse for player 2" onclick="changeMousePlayer()"
 			style="width: 100px; height: 30px; color: tomato;">Player 2</button>
 		<br><br>
 	</div>
 
-	<script>
-
-		// Creates a 2D array filled with zeros
-		var create2DArray = function (numColumns, numRows) {
-			var array = [];
-			for (var c = 0; c < numColumns; c++) {
-				array.push([]); // adds an empty 1D array at the end of "array"
-				for (var r = 0; r < numRows; r++) {
-					array[c].push(0); // add zero at end of the 1D array "array[c]"
-				}
-			}
-			return array;
-		}
-
-		var canvas = document.getElementById("myCanvas");
-		var C = canvas.getContext("2d");
-		var canvas_rectangle = canvas.getBoundingClientRect();
-		var cellSize = 5; // each cell in the grid is a square of this size, in pixels
-		var NUM_CELLS_HORIZONTAL = canvas.width / cellSize;
-		var NUM_CELLS_VERTICAL = canvas.height / cellSize;
-		var x0 = (canvas.width - NUM_CELLS_HORIZONTAL * cellSize) / 2;
-		var y0 = (canvas.height - NUM_CELLS_VERTICAL * cellSize) / 2;
-		var grid = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
-		var grid1 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
-		var grid2 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
-		var CELL_EMPTY = 0;
-		var CELL_OCCUPIED = 1;
-
-		// Current position and direction of light cycle 1
-		var lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
-		var lightCycle1_y = NUM_CELLS_VERTICAL - 2;
-		var lightCycle1_vx = 0; // positive for right
-		var lightCycle1_vy = -1; // positive for down
-		var lightCycle1_alive = true;
-		var lightCycle1_score = 0;
-		document.getElementById("score1").innerText = lightCycle1_score;
-
-		// Current position and direction of light cycle 2
-		var lightCycle2_x = NUM_CELLS_HORIZONTAL / 2;
-		var lightCycle2_y = 1;
-		var lightCycle2_vx = 0;
-		var lightCycle2_vy = 1;
-		var lightCycle2_alive = true;
-		var lightCycle2_score = 0;
-		document.getElementById("score2").innerText = lightCycle2_score;
-
-		// Mouse drag
-		var tempX;
-		var tempY;
-		var mousePlayer1 = true;
-
-		// to mark the initial grid cell as occupied
-		grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-		grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-		grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-		grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-
-		function keyDownHandler(e) {
-			switch (e.keyCode) {
-				// 1st player
-				case 38: // up arrow
-					e.preventDefault();
-					lightCycle1_vx = 0;
-					lightCycle1_vy = -1;
-					break;
-				case 40: // down arrow
-					e.preventDefault();
-					lightCycle1_vx = 0;
-					lightCycle1_vy = 1;
-					break;
-				case 37: // left arrow
-					lightCycle1_vy = 0;
-					lightCycle1_vx = -1;
-					break;
-				case 39: // right arrow
-					lightCycle1_vy = 0;
-					lightCycle1_vx = 1;
-					break;
-
-				// 2nd player
-				case 87: // up (w)
-					lightCycle2_vx = 0;
-					lightCycle2_vy = -1;
-					break;
-				case 83: // down (s)
-					lightCycle2_vx = 0;
-					lightCycle2_vy = 1;
-					break;
-				case 65: // left (a)
-					lightCycle2_vy = 0;
-					lightCycle2_vx = -1;
-					break;
-				case 68: // right (d)
-					lightCycle2_vy = 0;
-					lightCycle2_vx = 1;
-					break;
-			}
-		}
-
-		function mouseDownHandler(e) {
-			// check if the mouse is on the canvas
-			if (e.pageX <= canvas_rectangle.right
-				&& e.pageY <= canvas_rectangle.bottom
-				&& e.pageX >= canvas_rectangle.left
-				&& e.pageY >= canvas_rectangle.top) {
-				tempX = e.pageX
-				tempY = e.pageY
-			}
-		}
-
-		function mouseUpHandler(e) {
-			// check if the mouse is on the canvas
-			if (e.pageX <= canvas_rectangle.right
-				&& e.pageY <= canvas_rectangle.bottom
-				&& e.pageX >= canvas_rectangle.left
-				&& e.pageY >= canvas_rectangle.top) {
-				delta_x = e.pageX - tempX
-				delta_y = e.pageY - tempY
-
-				if (Math.abs(delta_x) > Math.abs(delta_y)) {
-					if (delta_x > 0) { // geste vers la droite
-						mousePlayer1 ? (
-							lightCycle1_vx = 1,
-							lightCycle1_vy = 0
-						) : (
-							lightCycle2_vx = 1,
-							lightCycle2_vy = 0
-						);
-					}
-					else { // geste vers la gauche
-						mousePlayer1 ? (
-							lightCycle1_vx = -1,
-							lightCycle1_vy = 0
-						) : (
-							lightCycle2_vx = -1,
-							lightCycle2_vy = 0
-						);
-					}
-				}
-				else if (delta_y > 0) { // geste vers le bas
-					mousePlayer1 ? (
-						lightCycle1_vx = 0,
-						lightCycle1_vy = 1
-					) : (
-						lightCycle2_vx = 0,
-						lightCycle2_vy = 1
-					);
-				}
-				else { // geste vers le haut 
-					mousePlayer1 ? (
-						lightCycle1_vx = 0,
-						lightCycle1_vy = -1
-					) : (
-						lightCycle2_vx = 0,
-						lightCycle2_vy = -1
-					);
-				}
-			}
-		}
-
-		document.onkeydown = keyDownHandler;
-		document.onmousedown = mouseDownHandler;
-		document.onmouseup = mouseUpHandler;
-
-		var clearGame = function () {
-			lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
-			lightCycle1_y = NUM_CELLS_VERTICAL - 2;
-			lightCycle1_vx = 0;
-			lightCycle1_vy = -1;
-			lightCycle2_x = NUM_CELLS_HORIZONTAL / 2;
-			lightCycle2_y = 1;
-			lightCycle2_vx = 0;
-			lightCycle2_vy = 1;
-
-			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
-				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
-					grid[i][j] = CELL_EMPTY;
-					grid1[i][j] = CELL_EMPTY;
-					grid2[i][j] = CELL_EMPTY;
-				}
-			}
-
-			// to mark the initial grid cell as occupied
-			grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-			grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-			grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-			grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-			// revive players
-			lightCycle1_alive = true;
-			lightCycle2_alive = true;
-
-			// reset time delay for motorcycle speed
-			timeDelay = 100;
-		}
-
-		var redraw = function () {
-			C.fillStyle = "#000000";
-			C.fillRect(0, 0, canvas.width, canvas.height);
-
-			C.fillStyle = document.getElementById("moto1color").value;
-			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
-				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
-					if (grid1[i][j] === CELL_OCCUPIED)
-						C.fillRect(x0 + i * cellSize + 1, y0 + j * cellSize + 1, cellSize - 2, cellSize - 2);
-				}
-			}
-
-			C.fillStyle = document.getElementById("moto2color").value;
-			for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
-				for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
-					if (grid2[i][j] === CELL_OCCUPIED)
-						C.fillRect(x0 + i * cellSize + 1, y0 + j * cellSize + 1, cellSize - 2, cellSize - 2);
-				}
-			}
-
-			C.fillStyle = lightCycle1_alive ? "#ff0000" : "#ffffff";
-			C.fillRect(x0 + lightCycle1_x * cellSize, y0 + lightCycle1_y * cellSize, cellSize, cellSize);
-
-			C.fillStyle = lightCycle2_alive ? "#ff0000" : "#ffffff";
-			C.fillRect(x0 + lightCycle2_x * cellSize, y0 + lightCycle2_y * cellSize, cellSize, cellSize);
-		}
-
-		var advance = function () {
-			if (!lightCycle1_alive || !lightCycle2_alive) clearGame();
-			else {
-				if (lightCycle1_alive && lightCycle2_alive) {
-					var new1_x = lightCycle1_x + lightCycle1_vx;
-					var new1_y = lightCycle1_y + lightCycle1_vy;
-					var new2_x = lightCycle2_x + lightCycle2_vx;
-					var new2_y = lightCycle2_y + lightCycle2_vy;
-					// Check for collision with head of other motorcycle
-					if ((new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
-						|| new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
-						|| grid[new1_x][new1_y] === CELL_OCCUPIED)
-						&& (new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
-							|| new2_y < 0 || new2_y >= NUM_CELLS_VERTICAL
-							|| grid[new2_x][new2_y] === CELL_OCCUPIED)) {
-						lightCycle2_alive = false;
-						lightCycle1_alive = false;
-						redraw();
-						return;
-					}
-				}
-				if (lightCycle1_alive) {
-					var new1_x = lightCycle1_x + lightCycle1_vx;
-					var new1_y = lightCycle1_y + lightCycle1_vy;
-
-					// Check for collision with grid boundaries and with trail
-					if (new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
-						|| new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
-						|| grid[new1_x][new1_y] === CELL_OCCUPIED) {
-						lightCycle1_alive = false;
-						document.getElementById("score2").innerText = ++lightCycle2_score; // player 2 wins
-					}
-					else {
-						grid[new1_x][new1_y] = CELL_OCCUPIED;
-						grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-						lightCycle1_x = new1_x;
-						lightCycle1_y = new1_y;
-					}
-					redraw();
-				}
-				if (lightCycle2_alive) {
-					var new2_x = lightCycle2_x + lightCycle2_vx;
-					var new2_y = lightCycle2_y + lightCycle2_vy;
-					if (
-						new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
-						|| new2_y < 0 || new2_y >= NUM_CELLS_VERTICAL
-						|| grid[new2_x][new2_y] === CELL_OCCUPIED
-					) {
-						lightCycle2_alive = false;
-						document.getElementById("score1").innerText = ++lightCycle1_score; // player 1 wins
-					} else {
-						grid[new2_x][new2_y] = CELL_OCCUPIED;
-						grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-						lightCycle2_x = new2_x;
-						lightCycle2_y = new2_y;
-					}
-					redraw();
-				}
-			}
-		}
-
-		var timeDelay = 100; // milliseconds
-		let timer = setInterval(function () { advance(); }, timeDelay);
-		let increaseSpeedTimer = setInterval(function () { increaseSpeed(); }, 200);
-
-		var increaseSpeed = function () {
-			clearInterval(timer);
-			timer = setInterval(function () { advance(); }, timeDelay);
-			timeDelay /= 1.03; // 3% decrease every 200 ms
-		}
-
-		function pause() {
-			clearInterval(timer);
-			clearInterval(increaseSpeedTimer);
-			document.getElementById("pauseButton").style.backgroundColor = "#B0B0B0";
-			document.getElementById('pauseButton').disabled = true;
-			document.getElementById('goButton').disabled = false;
-			document.getElementById("goButton").style.backgroundColor = null;
-		}
-
-		function restart() {
-			lightCycle1_alive = false;
-			lightCycle2_alive = false;
-			lightCycle1_score = 0
-			lightCycle2_score = 0;
-			document.getElementById("score1").innerText = lightCycle1_score;
-			document.getElementById("score2").innerText = lightCycle2_score;
-		}
-
-		function go() {
-			timer = setInterval(function () { advance(); }, 100 /*milliseconds*/);
-			increaseSpeedTimer = setInterval(function () { increaseSpeed(); }, 150);
-			document.getElementById("pauseButton").style.backgroundColor = null;
-			document.getElementById('pauseButton').disabled = false;
-			document.getElementById('goButton').disabled = true;
-			document.getElementById("goButton").style.backgroundColor = "#B0B0B0";
-		}
-
-		function changeMousePlayer() {
-			if (mousePlayer1) { // player 2 takes control
-				mousePlayer1 = false;
-				document.getElementById('player1Button').disabled = false;
-				document.getElementById('player2Button').disabled = true;
-			}
-			else { // player 1 takes control
-				mousePlayer1 = true
-				document.getElementById('player2Button').disabled = false;
-				document.getElementById('player1Button').disabled = true;
-			}
-		}
-
-	</script>
+	<script src="main.js"></script>
 </body>
 
 </html>
