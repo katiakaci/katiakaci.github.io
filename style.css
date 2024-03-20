@@ -1,6 +1,7 @@
 body {
     margin: 0;
     overflow-y: hidden;
+    user-select: none;
 }
 
 .center {
@@ -40,10 +41,11 @@ body {
 
 .help {
     position: absolute;
-    top: 8px;
+    bottom: 8px;
     right: 10px;
 }
 
+/*------ Pause, restart and resume buttons ------*/
 .buttons {
     border: none;
     padding: 0.8em 2.5em;
@@ -106,4 +108,57 @@ body {
 .buttons:enabled:hover:before {
     width: 115%;
     height: 115%;
+}
+
+/*------ Mute button ------*/
+.muteButton {
+    --color: #a5a5b0;
+    --size: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    cursor: pointer;
+    font-size: var(--size);
+    fill: var(--color);
+}
+
+.muteButton .mute {
+    position: absolute;
+    animation: keyframes-fill .5s;
+}
+
+.muteButton .voice {
+    position: absolute;
+    display: none;
+    animation: keyframes-fill .5s;
+}
+
+.muteButton input:checked~.mute {
+    display: none;
+}
+
+.muteButton input:checked~.voice {
+    display: block;
+}
+
+.muteButton input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+@keyframes keyframes-fill {
+    0% {
+        transform: rotate(0deg) scale(0);
+        opacity: 0;
+    }
+
+    50% {
+        transform: rotate(-10deg) scale(1.2);
+    }
 }
