@@ -7,6 +7,8 @@ var create2DArray = function (numColumns, numRows) {
     return array;
 }
 
+const backgroundMusic = document.getElementById('backgroundMusic');
+const collisionSound = document.getElementById('collisionSound');
 document.getElementById('goButton').disabled = true;
 const canvas = document.getElementById("myCanvas");
 const C = canvas.getContext("2d");
@@ -21,6 +23,10 @@ let grid1 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
 let grid2 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
 const CELL_EMPTY = 0;
 const CELL_OCCUPIED = 1;
+
+var timeDelay = 100; // milliseconds
+let timer = setInterval(function () { advance(); }, timeDelay);
+let increaseSpeedTimer = setInterval(function () { increaseSpeed(); }, 200);
 
 // Current position and direction of light cycle 1
 var lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
@@ -136,7 +142,7 @@ document.onkeydown = keyDownHandler;
 document.onmousedown = mouseDownHandler;
 document.onmouseup = mouseUpHandler;
 
-const clearGame = () => {
+function clearGame() {
     lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
     lightCycle1_y = NUM_CELLS_VERTICAL - 2;
     lightCycle1_vx = 0;
@@ -209,6 +215,7 @@ const advance = () => {
                     || grid[new2_x][new2_y] === CELL_OCCUPIED)) {
                 lightCycle2_alive = false;
                 lightCycle1_alive = false;
+                collisionSound.play();
                 redraw();
                 return;
             }
@@ -222,6 +229,7 @@ const advance = () => {
                 || new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
                 || grid[new1_x][new1_y] === CELL_OCCUPIED) {
                 lightCycle1_alive = false;
+                collisionSound.play();
                 document.getElementById("score2").innerText = ++lightCycle2_score; // player 2 wins
             }
             else {
@@ -241,6 +249,7 @@ const advance = () => {
                 || grid[new2_x][new2_y] === CELL_OCCUPIED
             ) {
                 lightCycle2_alive = false;
+                collisionSound.play();
                 document.getElementById("score1").innerText = ++lightCycle1_score; // player 1 wins
             } else {
                 grid[new2_x][new2_y] = CELL_OCCUPIED;
@@ -252,10 +261,6 @@ const advance = () => {
         }
     }
 }
-
-var timeDelay = 100; // milliseconds
-let timer = setInterval(function () { advance(); }, timeDelay);
-let increaseSpeedTimer = setInterval(function () { increaseSpeed(); }, 200);
 
 var increaseSpeed = function () {
     clearInterval(timer);
@@ -301,3 +306,14 @@ function changeMousePlayer() {
         document.getElementById('player1Button').disabled = true;
     }
 }
+
+function muteMusic() {
+    const isMuted = !backgroundMusic.muted;
+    backgroundMusic.muted = isMuted;
+    collisionSound.muted = isMuted;
+}
+
+// TODO : Find a way to play the music automatically without requiring the user to click on the page first
+window.onclick = function () {
+    backgroundMusic.play();
+};
