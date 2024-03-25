@@ -1,15 +1,3 @@
-// Creates a 2D array filled with zeros
-var create2DArray = function (numColumns, numRows) {
-    const array = [];
-    for (let c = 0; c < numColumns; c++) {
-        array.push(Array(numRows).fill(0));
-    }
-    return array;
-}
-
-const backgroundMusic = document.getElementById('backgroundMusic');
-const collisionSound = document.getElementById('collisionSound');
-document.getElementById('goButton').disabled = true;
 const canvas = document.getElementById("myCanvas");
 const C = canvas.getContext("2d");
 const canvas_rectangle = canvas.getBoundingClientRect();
@@ -18,32 +6,18 @@ const NUM_CELLS_HORIZONTAL = canvas.width / cellSize;
 const NUM_CELLS_VERTICAL = canvas.height / cellSize;
 const x0 = (canvas.width - NUM_CELLS_HORIZONTAL * cellSize) / 2;
 const y0 = (canvas.height - NUM_CELLS_VERTICAL * cellSize) / 2;
-let grid = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
-let grid1 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
-let grid2 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
-const CELL_EMPTY = 0;
-const CELL_OCCUPIED = 1;
+const CELL_EMPTY = 0, CELL_OCCUPIED = 1;
 
 var timeDelay = 100; // milliseconds
 let timer = setInterval(function () { advance(); }, timeDelay);
 let increaseSpeedTimer = setInterval(function () { increaseSpeed(); }, 200);
 
-// Current position and direction of light cycle 1
-var lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
-var lightCycle1_y = NUM_CELLS_VERTICAL - 2;
-var lightCycle1_vx = 0; // positive for right
-var lightCycle1_vy = -1; // positive for down
-var lightCycle1_alive = true;
-var lightCycle1_score = 0;
-document.getElementById("score1").innerText = lightCycle1_score;
+let grid, grid1, grid2;
+var lightCycle1_x, lightCycle1_y, lightCycle1_vx, lightCycle1_vy, lightCycle1_alive;
+var lightCycle2_x, lightCycle2_y, lightCycle2_vx, lightCycle2_vy, lightCycle2_alive
 
-// Current position and direction of light cycle 2
-var lightCycle2_x = NUM_CELLS_HORIZONTAL / 2;
-var lightCycle2_y = 1;
-var lightCycle2_vx = 0;
-var lightCycle2_vy = 1;
-var lightCycle2_alive = true;
-var lightCycle2_score = 0;
+var lightCycle1_score = 0, lightCycle2_score = 0;
+document.getElementById("score1").innerText = lightCycle1_score;
 document.getElementById("score2").innerText = lightCycle2_score;
 
 // Mouse drag
@@ -51,11 +25,41 @@ var tempX;
 var tempY;
 var mousePlayer1 = true;
 
-// to mark the initial grid cell as occupied
-grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
+var create2DArray = function (numColumns, numRows) {
+    const array = [];
+    for (let c = 0; c < numColumns; c++) {
+        array.push(Array(numRows).fill(0));
+    }
+    return array;
+}
+
+const clearGame = () => {
+    lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
+    lightCycle1_y = NUM_CELLS_VERTICAL - 2;
+    lightCycle1_vx = 0;
+    lightCycle1_vy = -1;
+    lightCycle2_x = NUM_CELLS_HORIZONTAL / 2;
+    lightCycle2_y = 1;
+    lightCycle2_vx = 0;
+    lightCycle2_vy = 1;
+
+    grid = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
+    grid1 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
+    grid2 = create2DArray(NUM_CELLS_HORIZONTAL, NUM_CELLS_VERTICAL);
+
+    grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
+    grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
+    grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
+    grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
+
+    lightCycle1_alive = true;
+    lightCycle2_alive = true;
+
+    timeDelay = 100;
+    document.getElementById('goButton').disabled = true;
+}
+
+clearGame();
 
 const keyDownHandler = (e) => {
     switch (e.keyCode) {
@@ -142,37 +146,6 @@ document.onkeydown = keyDownHandler;
 document.onmousedown = mouseDownHandler;
 document.onmouseup = mouseUpHandler;
 
-function clearGame() {
-    lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
-    lightCycle1_y = NUM_CELLS_VERTICAL - 2;
-    lightCycle1_vx = 0;
-    lightCycle1_vy = -1;
-    lightCycle2_x = NUM_CELLS_HORIZONTAL / 2;
-    lightCycle2_y = 1;
-    lightCycle2_vx = 0;
-    lightCycle2_vy = 1;
-
-    for (var i = 0; i < NUM_CELLS_HORIZONTAL; ++i) {
-        for (var j = 0; j < NUM_CELLS_VERTICAL; ++j) {
-            grid[i][j] = CELL_EMPTY;
-            grid1[i][j] = CELL_EMPTY;
-            grid2[i][j] = CELL_EMPTY;
-        }
-    }
-
-    // to mark the initial grid cell as occupied
-    grid[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-    grid[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-    grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-    grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-    // revive players
-    lightCycle1_alive = true;
-    lightCycle2_alive = true;
-
-    // reset time delay for motorcycle speed
-    timeDelay = 100;
-}
-
 const redraw = () => {
     C.fillStyle = "#000000";
     C.fillRect(0, 0, canvas.width, canvas.height);
@@ -199,66 +172,68 @@ const redraw = () => {
 }
 
 const advance = () => {
-    if (!lightCycle1_alive || !lightCycle2_alive) clearGame();
-    else {
-        if (lightCycle1_alive && lightCycle2_alive) {
-            var new1_x = lightCycle1_x + lightCycle1_vx;
-            var new1_y = lightCycle1_y + lightCycle1_vy;
-            var new2_x = lightCycle2_x + lightCycle2_vx;
-            var new2_y = lightCycle2_y + lightCycle2_vy;
-            // Check for collision with head of other motorcycle
-            if ((new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
-                || new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
-                || grid[new1_x][new1_y] === CELL_OCCUPIED)
-                && (new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
-                    || new2_y < 0 || new2_y >= NUM_CELLS_VERTICAL
-                    || grid[new2_x][new2_y] === CELL_OCCUPIED)) {
-                lightCycle2_alive = false;
-                lightCycle1_alive = false;
-                collisionSound.play();
-                redraw();
-                return;
-            }
-        }
-        if (lightCycle1_alive) {
-            var new1_x = lightCycle1_x + lightCycle1_vx;
-            var new1_y = lightCycle1_y + lightCycle1_vy;
+    if (!lightCycle1_alive || !lightCycle2_alive) {
+        clearGame();
+        return;
+    }
 
-            // Check for collision with grid boundaries and with trail
-            if (new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
-                || new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
-                || grid[new1_x][new1_y] === CELL_OCCUPIED) {
-                lightCycle1_alive = false;
-                collisionSound.play();
-                document.getElementById("score2").innerText = ++lightCycle2_score; // player 2 wins
-            }
-            else {
-                grid[new1_x][new1_y] = CELL_OCCUPIED;
-                grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
-                lightCycle1_x = new1_x;
-                lightCycle1_y = new1_y;
-            }
-            redraw();
-        }
-        if (lightCycle2_alive) {
-            var new2_x = lightCycle2_x + lightCycle2_vx;
-            var new2_y = lightCycle2_y + lightCycle2_vy;
-            if (
-                new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
+    if (lightCycle1_alive && lightCycle2_alive) {
+        var new1_x = lightCycle1_x + lightCycle1_vx;
+        var new1_y = lightCycle1_y + lightCycle1_vy;
+        var new2_x = lightCycle2_x + lightCycle2_vx;
+        var new2_y = lightCycle2_y + lightCycle2_vy;
+        // Check for collision with head of other motorcycle
+        if ((new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
+            || new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
+            || grid[new1_x][new1_y] === CELL_OCCUPIED)
+            && (new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
                 || new2_y < 0 || new2_y >= NUM_CELLS_VERTICAL
-                || grid[new2_x][new2_y] === CELL_OCCUPIED
-            ) {
-                lightCycle2_alive = false;
-                collisionSound.play();
-                document.getElementById("score1").innerText = ++lightCycle1_score; // player 1 wins
-            } else {
-                grid[new2_x][new2_y] = CELL_OCCUPIED;
-                grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
-                lightCycle2_x = new2_x;
-                lightCycle2_y = new2_y;
-            }
+                || grid[new2_x][new2_y] === CELL_OCCUPIED)) {
+            lightCycle2_alive = false;
+            lightCycle1_alive = false;
+            document.getElementById('collisionSound').play();
             redraw();
+            return;
         }
+    }
+    if (lightCycle1_alive) {
+        var new1_x = lightCycle1_x + lightCycle1_vx;
+        var new1_y = lightCycle1_y + lightCycle1_vy;
+
+        // Check for collision with grid boundaries and with trail
+        if (new1_x < 0 || new1_x >= NUM_CELLS_HORIZONTAL
+            || new1_y < 0 || new1_y >= NUM_CELLS_VERTICAL
+            || grid[new1_x][new1_y] === CELL_OCCUPIED) {
+            lightCycle1_alive = false;
+            document.getElementById('collisionSound').play();
+            document.getElementById("score2").innerText = ++lightCycle2_score; // player 2 wins
+        }
+        else {
+            grid[new1_x][new1_y] = CELL_OCCUPIED;
+            grid1[lightCycle1_x][lightCycle1_y] = CELL_OCCUPIED;
+            lightCycle1_x = new1_x;
+            lightCycle1_y = new1_y;
+        }
+        redraw();
+    }
+    if (lightCycle2_alive) {
+        var new2_x = lightCycle2_x + lightCycle2_vx;
+        var new2_y = lightCycle2_y + lightCycle2_vy;
+        if (
+            new2_x < 0 || new2_x >= NUM_CELLS_HORIZONTAL
+            || new2_y < 0 || new2_y >= NUM_CELLS_VERTICAL
+            || grid[new2_x][new2_y] === CELL_OCCUPIED
+        ) {
+            lightCycle2_alive = false;
+            document.getElementById('collisionSound').play();
+            document.getElementById("score1").innerText = ++lightCycle1_score; // player 1 wins
+        } else {
+            grid[new2_x][new2_y] = CELL_OCCUPIED;
+            grid2[lightCycle2_x][lightCycle2_y] = CELL_OCCUPIED;
+            lightCycle2_x = new2_x;
+            lightCycle2_y = new2_y;
+        }
+        redraw();
     }
 }
 
@@ -295,25 +270,18 @@ function go() {
 }
 
 function changeMousePlayer() {
-    if (mousePlayer1) { // player 2 takes control
-        mousePlayer1 = false;
-        document.getElementById('player1Button').disabled = false;
-        document.getElementById('player2Button').disabled = true;
-    }
-    else { // player 1 takes control
-        mousePlayer1 = true
-        document.getElementById('player2Button').disabled = false;
-        document.getElementById('player1Button').disabled = true;
-    }
+    mousePlayer1 = !mousePlayer1;
+    document.getElementById('player1Button').disabled = mousePlayer1;
+    document.getElementById('player2Button').disabled = !mousePlayer1;
 }
 
 function muteMusic() {
-    const isMuted = !backgroundMusic.muted;
-    backgroundMusic.muted = isMuted;
-    collisionSound.muted = isMuted;
+    const isMuted = !document.getElementById('backgroundMusic').muted;
+    document.getElementById('backgroundMusic').muted = isMuted;
+    document.getElementById('collisionSound').muted = isMuted;
 }
 
 // TODO : Find a way to play the music automatically without requiring the user to click on the page first
 window.onclick = function () {
-    backgroundMusic.play();
+    document.getElementById('backgroundMusic').play();
 };
