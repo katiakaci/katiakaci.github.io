@@ -37,11 +37,11 @@ Here are some planned improvements and features that will be added to the game i
 
 4. **Mobile Compatibility:**
    - Optimize the game for mobile devices and ensure responsive design for various screen sizes.
-   - Implement touch controls and gestures for intuitive gameplay on touch-enabled devices.
+   - Implement touch controls and gestures for gameplay on touch-enabled devices.
 
 5. **Single-Player Mode:**
    - Create a single-player mode with challenging levels and objectives.
-   - Develop an AI opponent with adjustable difficulty levels for single-player mode.
+   - Develop an AI opponent with adjustable difficulty levels.
 
 ## Credits
 This game was created by Katia Kaci as a fun project to demonstrate programming and game development skills.
