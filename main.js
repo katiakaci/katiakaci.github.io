@@ -276,12 +276,8 @@ function changeMousePlayer() {
 }
 
 function muteMusic() {
+    document.getElementById("backgroundMusic").play();
     const isMuted = !document.getElementById('backgroundMusic').muted;
     document.getElementById('backgroundMusic').muted = isMuted;
     document.getElementById('collisionSound').muted = isMuted;
 }
-
-// TODO : Find a way to play the music automatically without requiring the user to click on the page first
-window.onclick = function () {
-    document.getElementById('backgroundMusic').play();
-};
