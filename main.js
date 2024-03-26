@@ -8,30 +8,25 @@ const x0 = (canvas.width - NUM_CELLS_HORIZONTAL * cellSize) / 2;
 const y0 = (canvas.height - NUM_CELLS_VERTICAL * cellSize) / 2;
 const CELL_EMPTY = 0, CELL_OCCUPIED = 1;
 
-var timeDelay = 100; // milliseconds
+let timeDelay = 100; // milliseconds
 let timer = setInterval(function () { advance(); }, timeDelay);
 let increaseSpeedTimer = setInterval(function () { increaseSpeed(); }, 200);
 
 let grid, grid1, grid2;
-var lightCycle1_x, lightCycle1_y, lightCycle1_vx, lightCycle1_vy, lightCycle1_alive;
-var lightCycle2_x, lightCycle2_y, lightCycle2_vx, lightCycle2_vy, lightCycle2_alive
+let lightCycle1_x, lightCycle1_y, lightCycle1_vx, lightCycle1_vy, lightCycle1_alive;
+let lightCycle2_x, lightCycle2_y, lightCycle2_vx, lightCycle2_vy, lightCycle2_alive
 
-var lightCycle1_score = 0, lightCycle2_score = 0;
+let lightCycle1_score = 0, lightCycle2_score = 0;
 document.getElementById("score1").innerText = lightCycle1_score;
 document.getElementById("score2").innerText = lightCycle2_score;
 
 // Mouse drag
-var tempX;
-var tempY;
-var mousePlayer1 = true;
+let tempX, tempY;
+let mousePlayer1 = true;
 
-var create2DArray = function (numColumns, numRows) {
-    const array = [];
-    for (let c = 0; c < numColumns; c++) {
-        array.push(Array(numRows).fill(0));
-    }
-    return array;
-}
+const create2DArray = (numColumns, numRows) => {
+    return Array.from({ length: numColumns }, () => Array(numRows).fill(0));
+};
 
 const clearGame = () => {
     lightCycle1_x = NUM_CELLS_HORIZONTAL / 2;
